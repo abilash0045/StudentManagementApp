@@ -1,5 +1,8 @@
 package com.avengers.studentManagement;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -7,45 +10,42 @@ import java.util.Map;
 
 @RestController
 public class StudentController {
+    @Autowired
+    StudentService studentService;
 
-    Map<Integer,Student> db = new HashMap<>();
-
-    // function to add students
     @PostMapping("/add_student")
-    public String add_student(@RequestBody Student student){
-        int admnNo = student.getAdmnNo();
-        db.put(admnNo,student);
-        return "Student added successfully";
+    public ResponseEntity add_student(@RequestBody Student student){
+        String response =  studentService.add_student(student);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // function to get student by admnNo
     @GetMapping("/get_student")
-    public Student get_student(@RequestParam("q") int admnNo){
-        return db.get(admnNo);
-    }
-    // function to get student by name
-    @GetMapping("/get_student/{name}")
-    public Student get_student(@PathVariable("name") String name){
-        for (Student student : db.values()){
-            if (student.getName().equals(name)){
-                return student;
-            }
+    public ResponseEntity get_student(@RequestParam("q") int admnNo){
+        Student response = studentService.get_student(admnNo);
+        if (response == null){
+            return new ResponseEntity<>("Invalid admnNo",HttpStatus.BAD_REQUEST);
         }
-        return null;
+        return new ResponseEntity<>(response,HttpStatus.FOUND);
     }
-    // function to update student
+
+    @GetMapping("/get_student/{name}")
+    public ResponseEntity get_student(@PathVariable("name") String name){
+        Student response = studentService.get_student(name);
+        if (response == null){
+            return new ResponseEntity<>("Invalid admnNo",HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(response,HttpStatus.FOUND);
+    }
+
     @PutMapping("/update_student")
-    public String update_student(@RequestParam("admnNo") int admnNo,@RequestParam("age") int age,@RequestParam("state") String state){
-        Student student = db.get(admnNo);
-        student.setAge(age);
-        student.setState(state);
-        db.put(admnNo,student);
-        return "Student updated Successfully";
+    public ResponseEntity update_student(@RequestParam("admnNo") int admnNo,@RequestParam("age") int age,@RequestParam("state") String state){
+        String response = studentService.update_student(admnNo,age,state);
+        return new ResponseEntity<>(response,HttpStatus.ACCEPTED);
     }
-    // function to delete student
+
     @DeleteMapping("/delete_student")
-    public String delete_student(@RequestParam("admnNo") int admnNo){
-        db.remove(admnNo);
-        return "Student deleted successfully";
+    public ResponseEntity delete_student(@RequestParam("admnNo") int admnNo){
+        String response = studentService.delete_student(admnNo);
+        return new ResponseEntity<>(response,HttpStatus.ACCEPTED);
     }
 }
